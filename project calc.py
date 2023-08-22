@@ -1,71 +1,58 @@
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.button import Button
+from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
+from kivy.uix.button import Button
+import random
 
 
-class CalculatorApp(App):
+class PasswordGeneratorApp(App):
     def build(self):
-        self.operators = ['+', '-', '*', '/']
-        self.last_was_operator = None
-        self.last_button = None
-        self.result = TextInput(font_size=32, readonly=True, halign='right', multiline=False)
-        layout = BoxLayout(orientation='vertical')
-        layout.add_widget(self.result)
-        buttons = [
-            ['7', '8', '9', '/'],
-            ['4', '5', '6', '*'],
-            ['1', '2', '3', '-'],
-            ['.', '0', 'C', '+']
-        ]
-        for row in buttons:
-            h_layout = BoxLayout()
-            for label in row:
-                button = Button(text=label, pos_hint={'center_x': 0.5, 'center_y': 0.5})
-                button.bind(on_press=self.on_button_press)
-                h_layout.add_widget(button)
-            layout.add_widget(h_layout)
-        equals_button = Button(text='=', pos_hint={'center_x': 0.5, 'center_y': 0.5})
-        equals_button.bind(on_press=self.on_solution)
-        layout.add_widget(equals_button)
+        self.title = 'Password Generator'
 
-        back_button = Button(text='<', pos_hint={'center_x': 0.5, 'center_y': 0.5})
-        back_button.bind(on_press=self.on_backspace)
-        layout.add_widget(back_button)
+        self.layout = BoxLayout(orientation='vertical', spacing=10, padding=10)
 
-        return layout
+        self.length_label = Label(text='Enter the length of your password:')
+        self.layout.add_widget(self.length_label)
 
-    def on_button_press(self, instance):
-        current = self.result.text
-        button_text = instance.text
+        self.length_input = TextInput(multiline=False)
+        self.layout.add_widget(self.length_input)
 
-        if button_text == 'C':
-            self.result.text = ''
-        else:
-            if current and (self.last_was_operator and button_text in self.operators):
-                return
-            elif current == '' and button_text in self.operators:
-                return
-            else:
-                new_text = current + button_text
-                self.result.text = new_text
+        self.generate_button = Button(text='Generate Password')
+        self.generate_button.bind(on_press=self.generate_password)
+        self.layout.add_widget(self.generate_button)
 
-        self.last_button = instance
-        self.last_was_operator = button_text in self.operators
+        self.password_label = Label(text='')
+        self.layout.add_widget(self.password_label)
 
-    def on_backspace(self, instance):
-        current = self.result.text
-        self.result.text = current[:-1]
+        return self.layout
 
-    def on_solution(self, instance):
-        text = self.result.text
+
+    def generate_password(self, instance):
+        upper = "QWERTYUIOPASDFGHZXCVBJNKML"
+        lower = "qwertyuiopalskdjfhgmznxbcv"
+        number = "0123456789"
+        symbol = "£$%^&*<|"
+        string = lower + upper + number + symbol
+
+        length_text = self.length_input.text.strip()
+
+        if not length_text:
+            self.password_label.text = 'Please enter a password length below.'
+            return
+
         try:
-            solution = str(eval(self.result.text))
-            self.result.text = solution
-        except Exception:
-            self.result.text = 'Error'
+            length = int(length_text)
+        except ValueError:
+            self.password_label.text = 'Invalid input. Please enter a valid number.'
+            return
+
+        if length <= 0:
+            self.password_label.text = 'Password length must be greater than 0.'
+        else:
+            password = "".join(random.sample(string, length))
+            self.password_label.text = 'Your password is: ' + password
 
 
 if __name__ == '__main__':
-    app = CalculatorApp()
-    app.run()
+    PasswordGeneratorApp().run()
